@@ -5,7 +5,7 @@ const app = express();
 const port = process.env.PORT || 3000; // Use a variável de ambiente PORT
 
 app.get('/', (req, res) => {
-    res.send('Hello Madu!');
+    res.send('DEPLOY AUTOMATIZADO COM GITHUB ACTIONS!!');
 });
 
 app.listen(port, '0.0.0.0', () => {  // Escute em 0.0.0.0
