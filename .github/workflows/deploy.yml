@@ -1,0 +1,53 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main  # Este fluxo será disparado quando houver um push na branch "main"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Configurar a VPS e deletar o backend antigo
+      env:
+        VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}  # Variável de ambiente que será configurada no GitHub
+      run: |
+        # Conectando à VPS e deletando o backend antigo
+        sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no root@24.199.87.16 "rm -rf /var/www/my-website.com/*"
+
+    - name: Compactar o projeto
+      run: |
+        # Deletar node_modules e package-lock.json
+        rm -rf node_modules package-lock.json
+        # Compactar o backend em um arquivo zip
+        zip -r backend.zip .
+
+    - name: Enviar o zip para a VPS
+      env:
+        VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}  # Variável de ambiente que será configurada no GitHub
+      run: |
+        # Enviar o arquivo zip para a VPS
+        sshpass -p "$VPS_PASSWORD" scp backend.zip root@24.199.87.16:/var/www/my-website.com/
+
+    - name: Conectar na VPS e instalar dependências
+      env:
+        VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}  # Variável de ambiente que será configurada no GitHub
+      run: |
+        # Conectar à VPS, entrar no diretório e instalar dependências
+        sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no root@24.199.87.16 "
+          cd /var/www/my-website.com/ &&
+          unzip backend.zip &&
+          npm install
+        "
+
+    - name: Reiniciar a VPS
+      env:
+        VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}  # Variável de ambiente que será configurada no GitHub
+      run: |
+        # Reiniciar o servidor VPS
+        sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no root@24.199.87.16 "systemctl reboot"
