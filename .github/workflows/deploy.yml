@@ -11,7 +11,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3  # Atualizado para a versão mais recente que usa Node.js 16+
+
+    - name: Instalar sshpass
+      run: sudo apt-get update && sudo apt-get install -y sshpass
 
     - name: Configurar a VPS e deletar o backend antigo
       env:
@@ -38,10 +41,10 @@ jobs:
       env:
         VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}  # Variável de ambiente que será configurada no GitHub
       run: |
-        # Conectar à VPS, entrar no diretório e instalar dependências
+        # Conectar à VPS, entrar no diretório, descompactar e instalar dependências
         sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no root@24.199.87.16 "
           cd /var/www/my-website.com/ &&
-          unzip backend.zip &&
+          unzip -o backend.zip &&  # Usar -o para sobrescrever arquivos sem prompt
           npm install
         "
 
